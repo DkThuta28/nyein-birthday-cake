@@ -274,6 +274,8 @@ export default function NyeinLandingPage() {
     DEFAULT_POPULAR_PICKS
   );
 
+  const [previewCake, setPreviewCake] = useState<{ img: string; title?: string } | null>(null);
+
   const [draggingMenu, setDraggingMenu] = useState<{
     section: "collections" | "picks";
     fromIndex: number;
@@ -384,12 +386,23 @@ export default function NyeinLandingPage() {
       }
     } catch {
       // keep current state on transient network issue
+    } finally {
+      setShowSplash(false);
     }
   }, []);
 
   useEffect(() => {
     fetchMenuFromDb();
   }, [fetchMenuFromDb]);
+
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const fetchOrders = useCallback(async () => {
     setIsLoadingOrders(true);
@@ -2018,13 +2031,13 @@ export default function NyeinLandingPage() {
                   Nyein
                 </div>
                 <div className="mt-0.5 text-[11px] uppercase tracking-[0.26em] text-white/85 drop-shadow-xs">
-                  Patisserie
+                  Birthday Cake
                 </div>
 
                 <h1 className="mt-7 text-3xl sm:text-[34px] font-bold leading-tight tracking-tight text-white drop-shadow-md">
-                  Celebrate Sweet
+                  Order Note and 
                   <br />
-                  Moments
+                  Menu
                 </h1>
               </header>
 
@@ -2176,7 +2189,12 @@ export default function NyeinLandingPage() {
                           onPointerMove={(e) =>
                             handleMenuItemPointerMove(e, "collections")
                           }
-                          onPointerUp={finishMenuItemDrag}
+                          onPointerUp={() => {
+                            finishMenuItemDrag();
+                            if (!isMenuEditing && !heroImgError) {
+                              setPreviewCake({ img: col.img, title: "Our Collection" });
+                            }
+                          }}
                           onPointerCancel={finishMenuItemDrag}
                           style={{
                             touchAction: isMenuEditing ? "none" : "auto",
@@ -2239,7 +2257,7 @@ export default function NyeinLandingPage() {
                     )}
                   </div>
 
-                  <div className="mt-3 grid grid-cols-3 gap-2.5">
+                  <div className="mt-3 grid grid-cols-3 gap-2.5 pb-24">
                     {popularPicks.map((pick, idx) => {
                       const isDraggingThis =
                         draggingMenu?.section === "picks" &&
@@ -2254,6 +2272,11 @@ export default function NyeinLandingPage() {
                           key={pick.id}
                           ref={(el) => {
                             pickCardRefs.current[idx] = el;
+                          }}
+                          onClick={() => {
+                            if (!isMenuEditing && !heroImgError) {
+                              setPreviewCake({ img: pick.img, title: "Popular Cake" });
+                            }
                           }}
                           onPointerDown={(e) =>
                             handleMenuItemPointerDown(e, "picks", idx)
@@ -2293,11 +2316,17 @@ export default function NyeinLandingPage() {
                           {isMenuEditing && (
                             <button
                               type="button"
-                              onClick={() => handleDeleteMenuPhoto("picks", pick.id)}
-                              aria-label="Remove popular cake photo"
-                              className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white shadow-xs transition hover:bg-rose-700 cursor-pointer"
+                              onClick={handleExitCircle}
+                              style={{
+                                position: "fixed",
+                                bottom: "24px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                zIndex: 99999,
+                              }}
+                              className="rounded-full border border-[#5d293e]/30 bg-[#5d293e] px-6 py-2.5 text-xs font-semibold tracking-wide text-white shadow-xl transition hover:bg-[#491e30] active:scale-95 cursor-pointer"
                             >
-                              <TrashIcon className="h-3 w-3" />
+                              ← Step Back Out
                             </button>
                           )}
                         </div>
@@ -2306,21 +2335,83 @@ export default function NyeinLandingPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Step Back Out Button (Kept as in Reference 1) */}
-              <div className="flex justify-center px-6 pt-5 pb-8">
-                <button
-                  type="button"
-                  onClick={handleExitCircle}
-                  className="rounded-full border border-[#5d293e]/30 bg-[#5d293e] px-6 py-2.5 text-xs font-semibold tracking-wide text-white shadow-sm transition hover:bg-[#491e30] active:scale-95 cursor-pointer"
-                >
-                  ← Step Back Out
-                </button>
-              </div>
             </div>
           </>
         )}
       </main>
+
+      {showSplash && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-[#2b0914] via-[#1a070d] to-[#120408] px-6 text-center text-white transition-opacity duration-300">
+          <div className="flex flex-col items-center">
+            <span className="font-serif text-3xl italic tracking-wide text-rose-100">
+              Nyein
+            </span>
+            <span className="mt-1 text-[10px] font-semibold tracking-[0.28em] text-rose-200/80 uppercase">
+              PATISSERIE
+            </span>
+            <div className="mt-6 h-6 w-6 animate-spin rounded-full border-2 border-rose-200/30 border-t-rose-100" />
+          </div>
+        </div>
+      )}
+
+      {isInsideCircle && (
+        <button
+          type="button"
+          onClick={handleExitCircle}
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 99999,
+          }}
+          className="rounded-full border border-[#5d293e]/30 bg-[#5d293e] px-6 py-2.5 text-xs font-semibold tracking-wide text-white shadow-xl transition hover:bg-[#491e30] active:scale-95 cursor-pointer"
+        >
+          ← Step Back Out
+        </button>
+      )}
+
+      {previewCake && (
+        <div
+          onClick={() => setPreviewCake(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-opacity"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md overflow-hidden rounded-3xl bg-[#f3d5dc] p-3 shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewCake(null)}
+              aria-label="Close preview"
+              className="absolute top-5 right-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-sm font-semibold text-white transition hover:bg-black/85 cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="aspect-square w-full overflow-hidden rounded-2xl bg-white/40">
+              <img
+                src={previewCake.img}
+                alt={previewCake.title || "Cake preview"}
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setUploadedPhotoUrl(previewCake.img);
+                setUploadedPhotoName("Selected Cake Design");
+                setActiveAction("customer-order");
+                setPreviewCake(null);
+              }}
+              className="mt-3 w-full rounded-2xl bg-[#5d152b] py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#491021] active:scale-[0.99] cursor-pointer"
+            >
+              ထိုcake အားရွေးချယ်မည်။
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
