@@ -2035,7 +2035,7 @@ export default function NyeinLandingPage() {
                 </div>
 
                 <h1 className="mt-7 text-3xl sm:text-[34px] font-bold leading-tight tracking-tight text-white drop-shadow-md">
-                  Order Note and 
+                  Order Note and
                   <br />
                   Menu
                 </h1>
@@ -2192,7 +2192,12 @@ export default function NyeinLandingPage() {
                           onPointerUp={() => {
                             finishMenuItemDrag();
                             if (!isMenuEditing && !heroImgError) {
-                              setPreviewCake({ img: col.img, title: "Our Collection" });
+                              setPreviewCake({
+                                img: col.img,
+                                title: "Our Collection",
+                                list: "collections",
+                                index: idx,
+                              });
                             }
                           }}
                           onPointerCancel={finishMenuItemDrag}
@@ -2275,7 +2280,12 @@ export default function NyeinLandingPage() {
                           }}
                           onClick={() => {
                             if (!isMenuEditing && !heroImgError) {
-                              setPreviewCake({ img: pick.img, title: "Popular Cake" });
+                              setPreviewCake({
+                                img: pick.img,
+                                title: "Popular Cake",
+                                list: "picks",
+                                index: idx,
+                              });
                             }
                           }}
                           onPointerDown={(e) =>
@@ -2311,23 +2321,6 @@ export default function NyeinLandingPage() {
                             <div className="flex h-full w-full items-center justify-center bg-[#5d152b]">
                               <CakeIcon className="h-8 w-8 text-white" />
                             </div>
-                          )}
-
-                          {isMenuEditing && (
-                            <button
-                              type="button"
-                              onClick={handleExitCircle}
-                              style={{
-                                position: "fixed",
-                                bottom: "24px",
-                                left: "50%",
-                                transform: "translateX(-50%)",
-                                zIndex: 99999,
-                              }}
-                              className="rounded-full border border-[#5d293e]/30 bg-[#5d293e] px-6 py-2.5 text-xs font-semibold tracking-wide text-white shadow-xl transition hover:bg-[#491e30] active:scale-95 cursor-pointer"
-                            >
-                              ← Step Back Out
-                            </button>
                           )}
                         </div>
                       );
@@ -2371,47 +2364,89 @@ export default function NyeinLandingPage() {
         </button>
       )}
 
-      {previewCake && (
-        <div
-          onClick={() => setPreviewCake(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-opacity"
-        >
+      {previewCake && (() => {
+        const activeList =
+          previewCake.list === "collections" ? collections : popularPicks;
+        const stepPreviewCake = (delta: number) => {
+          if (activeList.length === 0) return;
+          const currentIdx =
+            typeof previewCake.index === "number" && previewCake.index >= 0
+              ? previewCake.index
+              : 0;
+          const nextIndex =
+            (currentIdx + delta + activeList.length) % activeList.length;
+          const nextItem = activeList[nextIndex];
+          if (!nextItem || !nextItem.img) return;
+          setPreviewCake({
+            ...previewCake,
+            img: nextItem.img,
+            index: nextIndex,
+          });
+        };
+
+        return (
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md overflow-hidden rounded-3xl bg-[#f3d5dc] p-3 shadow-2xl"
+            onClick={() => setPreviewCake(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-opacity"
           >
-            <button
-              type="button"
-              onClick={() => setPreviewCake(null)}
-              aria-label="Close preview"
-              className="absolute top-5 right-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-sm font-semibold text-white transition hover:bg-black/85 cursor-pointer"
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md overflow-hidden rounded-3xl bg-[#f3d5dc] p-3 shadow-2xl"
             >
-              ✕
-            </button>
+              <button
+                type="button"
+                onClick={() => setPreviewCake(null)}
+                aria-label="Close preview"
+                className="absolute top-5 right-5 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-sm font-semibold text-white transition hover:bg-black/85 cursor-pointer"
+              >
+                ✕
+              </button>
 
-            <div className="aspect-square w-full overflow-hidden rounded-2xl bg-white/40">
-              <img
-                src={previewCake.img}
-                alt={previewCake.title || "Cake preview"}
-                className="h-full w-full object-cover"
-              />
+              <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-white/40">
+                <img
+                  src={previewCake.img}
+                  alt={previewCake.title || "Cake preview"}
+                  className="h-full w-full object-cover"
+                />
+
+                {activeList.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => stepPreviewCake(-1)}
+                      aria-label="Previous cake"
+                      className="absolute top-1/2 left-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-lg font-bold text-white shadow-md backdrop-blur-xs transition hover:bg-black/75 active:scale-95 cursor-pointer"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => stepPreviewCake(1)}
+                      aria-label="Next cake"
+                      className="absolute top-1/2 right-3 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-lg font-bold text-white shadow-md backdrop-blur-xs transition hover:bg-black/75 active:scale-95 cursor-pointer"
+                    >
+                      ›
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadedPhotoUrl(previewCake.img);
+                  setUploadedPhotoName("Selected Cake Design");
+                  setActiveAction("customer-order");
+                  setPreviewCake(null);
+                }}
+                className="mt-3 w-full rounded-2xl bg-[#5d152b] py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#491021] active:scale-[0.99] cursor-pointer"
+              >
+                ထိုcake အားရွေးချယ်မည်။
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setUploadedPhotoUrl(previewCake.img);
-                setUploadedPhotoName("Selected Cake Design");
-                setActiveAction("customer-order");
-                setPreviewCake(null);
-              }}
-              className="mt-3 w-full rounded-2xl bg-[#5d152b] py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#491021] active:scale-[0.99] cursor-pointer"
-            >
-              ထိုcake အားရွေးချယ်မည်။
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
