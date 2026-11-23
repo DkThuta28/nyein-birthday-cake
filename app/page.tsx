@@ -2284,15 +2284,15 @@ export default function NyeinLandingPage() {
                             pickCardRefs.current[idx] = el;
                           }}
                           onClick={() => {
-                            if (!isMenuEditing && !heroImgError) {
-                              const [previewCake, setPreviewCake] = useState<{
-                                img: string;
-                                title?: string;
-                                list?: "collections" | "picks";
-                                index?: number;
-                              } | null>(null);
-                            }
-                          }}
+  if (!isMenuEditing && !heroImgError) {
+    setPreviewCake({
+      img: pick.img,
+      title: "Popular Cake",
+      list: "picks",
+      index: idx,
+    });
+  }
+}}
                           onPointerDown={(e) =>
                             handleMenuItemPointerDown(e, "picks", idx)
                           }
