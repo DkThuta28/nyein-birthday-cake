@@ -274,7 +274,12 @@ export default function NyeinLandingPage() {
     DEFAULT_POPULAR_PICKS
   );
 
-  const [previewCake, setPreviewCake] = useState<{ img: string; title?: string } | null>(null);
+  const [previewCake, setPreviewCake] = useState<{
+    img: string;
+    title?: string;
+    list?: "collections" | "picks";
+    index?: number;
+  } | null>(null);
 
   const [draggingMenu, setDraggingMenu] = useState<{
     section: "collections" | "picks";
@@ -2280,12 +2285,12 @@ export default function NyeinLandingPage() {
                           }}
                           onClick={() => {
                             if (!isMenuEditing && !heroImgError) {
-                              setPreviewCake({
-                                img: pick.img,
-                                title: "Popular Cake",
-                                list: "picks",
-                                index: idx,
-                              });
+                              const [previewCake, setPreviewCake] = useState<{
+                                img: string;
+                                title?: string;
+                                list?: "collections" | "picks";
+                                index?: number;
+                              } | null>(null);
                             }
                           }}
                           onPointerDown={(e) =>
