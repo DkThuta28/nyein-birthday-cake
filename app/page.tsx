@@ -2399,7 +2399,7 @@ export default function NyeinLandingPage() {
             const compressedItems = await Promise.all(
               Array.from(files).map(async (file, i) => ({
                 id: `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
-                img: await compressImageFile(file, 600, 0.6),
+                img: await compressImageFile(file, 500, 0.5),
                 darkBg: false,
               }))
             );
