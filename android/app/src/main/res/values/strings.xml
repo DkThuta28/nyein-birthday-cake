@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nyein Bakery</string>
+    <string name="title_activity_main">Nyein Bakery</string>
+    <string name="package_name">com.nyeinbakery.app</string>
+    <string name="custom_url_scheme">com.nyeinbakery.app</string>
+</resources>

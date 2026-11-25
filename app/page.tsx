@@ -11,6 +11,8 @@ import {
   useState,
 } from "react";
 
+import { compressImageFile } from "../lib/compressImage";
+
 interface OrderRecord {
   _id: string;
   cakeRecipientName: string;
@@ -2284,15 +2286,15 @@ export default function NyeinLandingPage() {
                             pickCardRefs.current[idx] = el;
                           }}
                           onClick={() => {
-  if (!isMenuEditing && !heroImgError) {
-    setPreviewCake({
-      img: pick.img,
-      title: "Popular Cake",
-      list: "picks",
-      index: idx,
-    });
-  }
-}}
+                            if (!isMenuEditing && !heroImgError) {
+                              setPreviewCake({
+                                img: pick.img,
+                                title: "Popular Cake",
+                                list: "picks",
+                                index: idx,
+                              });
+                            }
+                          }}
                           onPointerDown={(e) =>
                             handleMenuItemPointerDown(e, "picks", idx)
                           }
@@ -2387,6 +2389,31 @@ export default function NyeinLandingPage() {
             img: nextItem.img,
             index: nextIndex,
           });
+        };
+
+        const handleAddPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+          const files = e.target.files;
+          if (!files || files.length === 0) return;
+
+          try {
+            const compressedItems = await Promise.all(
+              Array.from(files).map(async (file, i) => ({
+                id: `${Date.now()}-${i}-${Math.random().toString(36).slice(2, 7)}`,
+                img: await compressImageFile(file, 800, 0.72),
+                darkBg: false,
+              }))
+            );
+
+            if (menuUploadTarget === "collections") {
+              setCollections((prev) => [...prev, ...compressedItems]);
+            } else {
+              setPopularPicks((prev) => [...prev, ...compressedItems]);
+            }
+          } catch (err) {
+            console.error("Image compression failed:", err);
+          } finally {
+            e.target.value = "";
+          }
         };
 
         return (
